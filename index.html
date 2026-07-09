@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#000000">
+<title>IMPOSTOR</title>
+<style>
+  :root {
+    --bg: #000000;
+    --fg: #ffffff;
+    --muted: rgba(255, 255, 255, 0.45);
+    --line: rgba(255, 255, 255, 0.16);
+    --tap: rgba(255, 255, 255, 0.08);
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Inter', 'Helvetica Neue', 'Roboto', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #app {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---------- Screens & Transitions ---------- */
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    transition: opacity .45s ease, transform .45s ease, visibility 0s linear .45s;
+  }
+  .screen.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition: opacity .45s ease .1s, transform .45s ease .1s, visibility 0s;
+  }
+
+  /* ---------- Typography ---------- */
+  .kicker {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .35em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  h1 {
+    font-size: clamp(52px, 17vw, 96px);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: .9;
+    text-transform: uppercase;
+    text-align: center;
+  }
+  .headline {
+    font-size: clamp(30px, 9vw, 52px);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1.02;
+    text-transform: uppercase;
+    text-align: center;
+  }
+  .sub {
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: .02em;
+    line-height: 1.6;
+    color: var(--muted);
+    text-align: center;
+    max-width: 320px;
+  }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 400px;
+    min-height: 68px;
+    padding: 18px 24px;
+    background: transparent;
+    color: var(--fg);
+    border: 2px solid var(--fg);
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease, transform .08s ease;
+  }
+  .btn:active {
+    background: var(--fg);
+    color: var(--bg);
+    transform: scale(.98);
+  }
+  .btn.solid {
+    background: var(--fg);
+    color: var(--bg);
+  }
+  .btn.solid:active {
+    background: transparent;
+    color: var(--fg);
+  }
+  .btn.ghost {
+    border-color: transparent;
+    color: var(--muted);
+    min-height: 52px;
+    font-size: 12px;
+    letter-spacing: .3em;
+  }
+  .btn.ghost:active {
+    background: var(--tap);
+    color: var(--fg);
+  }
+
+  .stack {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+    max-width: 400px;
+    align-items: center;
+  }
+
+  /* ---------- Setup: Stepper ---------- */
+  .stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    margin: 8px 0 4px;
+  }
+  .stepper button {
+    width: 68px;
+    height: 68px;
+    background: transparent;
+    color: var(--fg);
+    border: 2px solid var(--fg);
+    font-family: inherit;
+    font-size: 30px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease, opacity .2s ease;
+  }
+  .stepper button:active { background: var(--fg); color: var(--bg); }
+  .stepper button:disabled { opacity: .2; pointer-events: none; }
+  .stepper .count {
+    font-size: 72px;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    min-width: 110px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .divider {
+    width: 44px;
+    height: 2px;
+    background: var(--line);
+    margin: 22px 0;
+  }
+
+  /* ---------- Modal ---------- */
+  #modal {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(0, 0, 0, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .35s ease, visibility 0s linear .35s;
+  }
+  #modal.open {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity .35s ease, visibility 0s;
+  }
+  .modal-box {
+    width: 100%;
+    max-width: 400px;
+    border: 2px solid var(--fg);
+    padding: 34px 28px;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .modal-box h2 {
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .rule {
+    display: flex;
+    gap: 16px;
+    align-items: baseline;
+  }
+  .rule .num {
+    font-size: 15px;
+    font-weight: 900;
+    color: var(--muted);
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .rule p {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  /* ---------- Reveal (pass phone) ---------- */
+  #revealCard {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 26px;
+    padding: 32px;
+    cursor: pointer;
+  }
+  .word-frame {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    border: 2px solid var(--fg);
+    padding: 52px 30px;
+    width: 100%;
+    max-width: 400px;
+    min-height: 240px;
+    justify-content: center;
+  }
+  .secret-word {
+    font-size: clamp(34px, 11vw, 58px);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    text-align: center;
+    line-height: 1;
+    word-break: break-word;
+  }
+  .reveal-progress {
+    display: flex;
+    gap: 8px;
+  }
+  .reveal-progress i {
+    width: 8px;
+    height: 8px;
+    background: var(--line);
+    transition: background .3s ease;
+  }
+  .reveal-progress i.done { background: var(--fg); }
+
+  /* ---------- Timer ---------- */
+  .timer {
+    font-size: clamp(96px, 34vw, 180px);
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    transition: color .3s ease;
+  }
+  .timer.critical { color: #ff2d2d; }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+  }
+  .timer.critical { animation: pulse 1s ease-in-out infinite; }
+
+  /* ---------- Result ---------- */
+  .impostor-name {
+    font-size: clamp(44px, 14vw, 80px);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: .95;
+    text-transform: uppercase;
+    text-align: center;
+  }
+  .word-pair {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 400px;
+  }
+  .word-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid var(--line);
+    padding: 12px 4px;
+  }
+  .word-row .label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .word-row .value {
+    font-size: 20px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    text-align: right;
+  }
+  .penalty-box {
+    border: 2px solid var(--fg);
+    padding: 22px 24px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+  }
+  .penalty-box .label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .penalty-box p {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.6;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  @keyframes flashIn {
+    0% { opacity: 0; transform: scale(1.15); filter: blur(6px); }
+    100% { opacity: 1; transform: scale(1); filter: blur(0); }
+  }
+  .flash-in { animation: flashIn .6s cubic-bezier(.2, .9, .3, 1) both; }
+
+  .footer-hint {
+    position: absolute;
+    bottom: max(20px, env(safe-area-inset-bottom));
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .4em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.22);
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ PHASE 1: SETUP ============ -->
+  <section class="screen active" id="screen-menu">
+    <span class="kicker">Social Deduction · Trinkspiel</span>
+    <h1 style="margin:14px 0 6px;">IMPO<br>STOR</h1>
+    <div class="divider"></div>
+
+    <span class="kicker" style="margin-bottom:6px;">Spieler</span>
+    <div class="stepper">
+      <button id="btnMinus" aria-label="Weniger Spieler">&minus;</button>
+      <div class="count" id="playerCount">5</div>
+      <button id="btnPlus" aria-label="Mehr Spieler">+</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="stack">
+      <button class="btn" data-cat="standard">Standard</button>
+      <button class="btn" data-cat="mittel">Mittel</button>
+      <button class="btn" data-cat="extrem">Extrem</button>
+      <button class="btn" data-cat="intim">+18 Intim</button>
+      <button class="btn ghost" id="btnRules">Regeln</button>
+    </div>
+  </section>
+
+  <!-- ============ PHASE 2: REVEAL ============ -->
+  <section class="screen" id="screen-reveal">
+    <div id="revealCard">
+      <span class="kicker" id="revealKicker">Geheime Übergabe</span>
+      <div class="word-frame" id="wordFrame">
+        <div class="headline" id="revealTitle">Spieler 1</div>
+        <div class="sub" id="revealSub">Tippen zum Einsehen</div>
+      </div>
+      <div class="reveal-progress" id="revealProgress"></div>
+    </div>
+    <div class="footer-hint">Handy verdeckt weitergeben</div>
+  </section>
+
+  <!-- ============ PHASE 3: DISCUSSION ============ -->
+  <section class="screen" id="screen-discussion">
+    <span class="kicker">Diskussion</span>
+    <div class="timer" id="timer" style="margin:26px 0 18px;">90</div>
+    <p class="sub" style="margin-bottom:44px;">Sagt reihum euer Wort<br>und diskutiert!</p>
+    <button class="btn solid" id="btnToVerdict">Zur Auflösung</button>
+  </section>
+
+  <!-- ============ PHASE 4a: VERDICT ============ -->
+  <section class="screen" id="screen-verdict">
+    <span class="kicker">Das Urteil</span>
+    <div class="headline" style="margin:26px 0 44px; max-width:340px;">Zählt von 3 runter und zeigt gleichzeitig auf den Impostor!</div>
+    <button class="btn solid" id="btnRevealTruth">Wer war es?</button>
+  </section>
+
+  <!-- ============ PHASE 4b: TRUTH ============ -->
+  <section class="screen" id="screen-truth">
+    <span class="kicker">Der Impostor war</span>
+    <div class="impostor-name flash-in" id="impostorName" style="margin:18px 0 30px;">Spieler ?</div>
+
+    <div class="word-pair" style="margin-bottom:26px;">
+      <div class="word-row">
+        <span class="label">Zivilisten</span>
+        <span class="value" id="civilianWord">—</span>
+      </div>
+      <div class="word-row">
+        <span class="label">Impostor</span>
+        <span class="value" id="impostorWord">—</span>
+      </div>
+    </div>
+
+    <div class="penalty-box" style="margin-bottom:34px;">
+      <div class="label">Sauf-Abrechnung</div>
+      <p id="penaltyText">—</p>
+    </div>
+
+    <button class="btn" id="btnNewGame">Neues Spiel</button>
+  </section>
+
+</div>
+
+<!-- ============ RULES MODAL ============ -->
+<div id="modal">
+  <div class="modal-box">
+    <h2>Regeln</h2>
+    <div class="rule"><span class="num">01</span><p>Jedes Mal sieht eine Person heimlich ein leicht anderes Wort als der Rest.</p></div>
+    <div class="rule"><span class="num">02</span><p>Reihum sagt jeder am Tisch genau EIN Wort, das zu seinem Begriff passt.</p></div>
+    <div class="rule"><span class="num">03</span><p>Der Impostor muss faken und versuchen, nicht aufzufallen.</p></div>
+    <div class="rule"><span class="num">04</span><p>Diskutiert, stimmt ab und zeigt nach Ablauf der Zeit alle gleichzeitig auf den Spion!</p></div>
+    <button class="btn" id="btnCloseModal">Verstanden</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ================= WORD DATABASE ================= */
+  var WORDS = {
+    standard: [
+      ['McDonalds', 'Burger King'],
+      ['Hund', 'Katze'],
+      ['Sommer', 'Strand'],
+      ['Kaffee', 'Energy Drink'],
+      ['Netflix', 'Kino'],
+      ['Pizza', 'Döner'],
+      ['Fußball', 'Basketball'],
+      ['Flugzeug', 'Zug'],
+      ['iPhone', 'Android'],
+      ['Weihnachten', 'Silvester']
+    ],
+    mittel: [
+      ['Ex-Freundin', 'Affäre'],
+      ['Kontostand', 'Taschengeld'],
+      ['Kater', 'Migräne'],
+      ['Tinder', 'Blind Date'],
+      ['Schwarzfahren', 'Falschparken'],
+      ['Lügen', 'Schauspielern'],
+      ['Chef', 'Stiefvater'],
+      ['Ghosting', 'Funkstille'],
+      ['Schulden', 'Miete'],
+      ['Jogginghose', 'Schlafanzug']
+    ],
+    extrem: [
+      ['Vollrausch', 'Filmriss'],
+      ['Polizei', 'Türsteher'],
+      ['Tequila', 'Vodka'],
+      ['Kotzen', 'Würgen'],
+      ['Absturz', 'After Hour'],
+      ['Hausverbot', 'Rauswurf'],
+      ['Blackout', 'K.O.'],
+      ['Kampftrinken', 'Wetttrinken'],
+      ['Entzug', 'Detox'],
+      ['Fahndung', 'Anzeige']
+    ],
+    intim: [
+      ['Kondom', 'Pille'],
+      ['Handschellen', 'Peitsche'],
+      ['One-Night-Stand', 'Freundschaft Plus'],
+      ['Dessous', 'Nacktheit'],
+      ['Knutschfleck', 'Biss'],
+      ['Dirty Talk', 'Sexting'],
+      ['Dreier', 'Swinger'],
+      ['Vorspiel', 'Massage'],
+      ['Rollenspiel', 'Verkleidung'],
+      ['Quickie', 'Morgensex']
+    ]
+  };
+
+  var CATEGORY_LABEL = {
+    standard: 'Standard',
+    mittel: 'Mittel',
+    extrem: 'Extrem',
+    intim: '+18 Intim'
+  };
+
+  var PENALTIES = {
+    standard: {
+      caught: 'Impostor erwischt? Der Impostor trinkt 5 Schlucke.',
+      escaped: 'Impostor entkommen? Alle Zivilisten trinken 3 Schlucke!'
+    },
+    mittel: {
+      caught: 'Impostor erwischt? Der Impostor trinkt 7 Schlucke.',
+      escaped: 'Impostor entkommen? Alle Zivilisten trinken 5 Schlucke!'
+    },
+    extrem: {
+      caught: 'Impostor erwischt? Der Impostor ext sein Glas!',
+      escaped: 'Impostor entkommen? Alle Zivilisten exen ihr Glas!'
+    },
+    intim: {
+      caught: 'Impostor erwischt? Der Impostor trinkt 5 Schlucke und beantwortet eine intime Frage.',
+      escaped: 'Impostor entkommen? Alle Zivilisten trinken 3 Schlucke und der Impostor stellt eine intime Frage!'
+    }
+  };
+
+  /* ================= STATE ================= */
+  var state = {
+    players: 5,
+    category: 'standard',
+    impostorIndex: 0,
+    civilianWord: '',
+    impostorWord: '',
+    currentPlayer: 0,   // 0-based index of the player currently holding the phone
+    wordVisible: false,
+    hideTimeout: null,
+    timerInterval: null,
+    timeLeft: 90
+  };
+
+  var MIN_PLAYERS = 3;
+  var MAX_PLAYERS = 10;
+
+  /* ================= AUDIO & HAPTICS ================= */
+  var audioCtx = null;
+
+  function getCtx() {
+    if (!audioCtx) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) audioCtx = new AC();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  function vibrate(pattern) {
+    if (navigator.vibrate) navigator.vibrate(pattern);
+  }
+
+  function clickSound() {
+    var ctx = getCtx();
+    if (!ctx) return;
+    var t = ctx.currentTime;
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1400, t);
+    gain.gain.setValueAtTime(0.12, t);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.08);
+  }
+
+  function bassDrop() {
+    var ctx = getCtx();
+    if (!ctx) return;
+    var t = ctx.currentTime;
+
+    // Deep sub-bass sweep
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(160, t);
+    osc.frequency.exponentialRampToValueAtTime(32, t + 1.1);
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(0.9, t + 0.06);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.4);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 1.5);
+
+    // Impact layer for punch
+    var osc2 = ctx.createOscillator();
+    var gain2 = ctx.createGain();
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(90, t);
+    osc2.frequency.exponentialRampToValueAtTime(40, t + 0.25);
+    gain2.gain.setValueAtTime(0.5, t);
+    gain2.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+    osc2.connect(gain2).connect(ctx.destination);
+    osc2.start(t);
+    osc2.stop(t + 0.35);
+  }
+
+  function tap() {
+    clickSound();
+    vibrate(40);
+  }
+
+  /* ================= HELPERS ================= */
+  function $(id) { return document.getElementById(id); }
+
+  function showScreen(id) {
+    var screens = document.querySelectorAll('.screen');
+    for (var i = 0; i < screens.length; i++) {
+      screens[i].classList.toggle('active', screens[i].id === id);
+    }
+  }
+
+  function randInt(n) { return Math.floor(Math.random() * n); }
+
+  /* ================= PHASE 1: SETUP ================= */
+  function updateStepper() {
+    $('playerCount').textContent = state.players;
+    $('btnMinus').disabled = state.players <= MIN_PLAYERS;
+    $('btnPlus').disabled = state.players >= MAX_PLAYERS;
+  }
+
+  $('btnMinus').addEventListener('click', function () {
+    if (state.players > MIN_PLAYERS) { state.players--; updateStepper(); tap(); }
+  });
+  $('btnPlus').addEventListener('click', function () {
+    if (state.players < MAX_PLAYERS) { state.players++; updateStepper(); tap(); }
+  });
+
+  var catButtons = document.querySelectorAll('[data-cat]');
+  for (var c = 0; c < catButtons.length; c++) {
+    catButtons[c].addEventListener('click', function () {
+      tap();
+      startGame(this.getAttribute('data-cat'));
+    });
+  }
+
+  $('btnRules').addEventListener('click', function () {
+    tap();
+    $('modal').classList.add('open');
+  });
+  $('btnCloseModal').addEventListener('click', function () {
+    tap();
+    $('modal').classList.remove('open');
+  });
+  $('modal').addEventListener('click', function (e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+
+  /* ================= PHASE 2: REVEAL ================= */
+  function startGame(category) {
+    state.category = category;
+    var pool = WORDS[category];
+    var pair = pool[randInt(pool.length)];
+
+    // Randomize which of the two words the impostor gets
+    if (Math.random() < 0.5) {
+      state.civilianWord = pair[0];
+      state.impostorWord = pair[1];
+    } else {
+      state.civilianWord = pair[1];
+      state.impostorWord = pair[0];
+    }
+
+    state.impostorIndex = randInt(state.players);
+    state.currentPlayer = 0;
+    state.wordVisible = false;
+
+    buildProgress();
+    renderRevealCovered();
+    showScreen('screen-reveal');
+  }
+
+  function buildProgress() {
+    var el = $('revealProgress');
+    el.innerHTML = '';
+    for (var i = 0; i < state.players; i++) {
+      el.appendChild(document.createElement('i'));
+    }
+  }
+
+  function updateProgress() {
+    var dots = $('revealProgress').children;
+    for (var i = 0; i < dots.length; i++) {
+      dots[i].classList.toggle('done', i < state.currentPlayer);
+    }
+  }
+
+  function renderRevealCovered() {
+    var n = state.currentPlayer + 1;
+    $('revealKicker').textContent = CATEGORY_LABEL[state.category];
+    if (state.currentPlayer === 0) {
+      $('revealTitle').textContent = 'Spieler 1';
+      $('revealSub').textContent = 'Tippen zum Einsehen';
+    } else {
+      $('revealTitle').textContent = 'Weitergeben an Spieler ' + n;
+      $('revealSub').textContent = 'Tippen zum Einsehen';
+    }
+    updateProgress();
+  }
+
+  function renderRevealWord() {
+    var isImpostor = state.currentPlayer === state.impostorIndex;
+    var word = isImpostor ? state.impostorWord : state.civilianWord;
+    $('revealTitle').innerHTML = '<span class="secret-word">' + word + '</span>';
+    $('revealSub').textContent = 'Merken. Tippen zum Verdecken.';
+  }
+
+  $('revealCard').addEventListener('click', function () {
+    tap();
+    if (!state.wordVisible) {
+      // Show the secret word
+      state.wordVisible = true;
+      renderRevealWord();
+      state.hideTimeout = setTimeout(hideWordAndAdvance, 3000);
+    } else {
+      // Tapped again before the 3s ran out
+      clearTimeout(state.hideTimeout);
+      hideWordAndAdvance();
+    }
+  });
+
+  function hideWordAndAdvance() {
+    state.wordVisible = false;
+    state.currentPlayer++;
+    if (state.currentPlayer >= state.players) {
+      startDiscussion();
+    } else {
+      renderRevealCovered();
+    }
+  }
+
+  /* ================= PHASE 3: DISCUSSION ================= */
+  function startDiscussion() {
+    state.timeLeft = 90;
+    var timerEl = $('timer');
+    timerEl.textContent = state.timeLeft;
+    timerEl.classList.remove('critical');
+    showScreen('screen-discussion');
+
+    clearInterval(state.timerInterval);
+    state.timerInterval = setInterval(function () {
+      state.timeLeft--;
+      if (state.timeLeft <= 0) {
+        state.timeLeft = 0;
+        clearInterval(state.timerInterval);
+        vibrate([80, 60, 80]);
+      }
+      timerEl.textContent = state.timeLeft;
+      if (state.timeLeft <= 10) timerEl.classList.add('critical');
+    }, 1000);
+  }
+
+  $('btnToVerdict').addEventListener('click', function () {
+    tap();
+    clearInterval(state.timerInterval);
+    showScreen('screen-verdict');
+  });
+
+  /* ================= PHASE 4: TRUTH ================= */
+  $('btnRevealTruth').addEventListener('click', function () {
+    bassDrop();
+    vibrate([100, 50, 100, 50, 400]);
+
+    $('impostorName').textContent = 'Spieler ' + (state.impostorIndex + 1);
+    $('civilianWord').textContent = state.civilianWord;
+    $('impostorWord').textContent = state.impostorWord;
+
+    var p = PENALTIES[state.category];
+    $('penaltyText').innerHTML = p.caught + '<br><br>' + p.escaped;
+
+    // Retrigger the flash-in animation
+    var nameEl = $('impostorName');
+    nameEl.classList.remove('flash-in');
+    void nameEl.offsetWidth;
+    nameEl.classList.add('flash-in');
+
+    showScreen('screen-truth');
+  });
+
+  $('btnNewGame').addEventListener('click', function () {
+    tap();
+    showScreen('screen-menu');
+  });
+
+  /* ================= INIT ================= */
+  updateStepper();
+})();
+</script>
+</body>
+</html>
