@@ -3,23 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#000000">
-<meta name="description" content="IMPOSTOR – Das Social-Deduction-Trinkspiel. Ein Handy, ein Spion, ein Wort. 3–10 Spieler.">
-<meta property="og:title" content="IMPOSTOR">
-<meta property="og:description" content="Das Social-Deduction-Trinkspiel. Ein Handy, ein Spion, ein Wort. 3–10 Spieler.">
+<meta name="theme-color" content="#060606">
+<meta name="description" content="VERDACHT – Das Social-Deduction-Trinkspiel. Ein Wort. Ein Spion. Kein Erbarmen. 3–10 Spieler.">
+<meta property="og:title" content="VERDACHT">
+<meta property="og:description" content="Das Social-Deduction-Trinkspiel. Ein Wort. Ein Spion. Kein Erbarmen.">
 <meta property="og:type" content="website">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="IMPOSTOR">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23000'/%3E%3Ctext x='32' y='46' font-family='Arial,sans-serif' font-size='40' font-weight='900' fill='%23fff' text-anchor='middle'%3EI%3C/text%3E%3C/svg%3E">
-<title>IMPOSTOR</title>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VERDACHT">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23060606'/%3E%3Crect x='14' y='18' width='36' height='28' fill='%23d8ff3a'/%3E%3C/svg%3E">
+<title>VERDACHT</title>
 <style>
   :root {
-    --bg: #000000;
-    --fg: #ffffff;
-    --muted: rgba(255, 255, 255, 0.45);
-    --line: rgba(255, 255, 255, 0.16);
-    --tap: rgba(255, 255, 255, 0.08);
+    --bg: #060606;
+    --fg: #f4f4f2;
+    --muted: rgba(244, 244, 242, 0.42);
+    --faint: rgba(244, 244, 242, 0.14);
+    --acid: #d8ff3a;
+    --danger: #ff3b30;
+    --font: "Inter", "SF Pro Display", "Helvetica Neue", "Roboto", system-ui, sans-serif;
   }
 
   * {
@@ -36,18 +38,82 @@
     overflow: hidden;
     background: var(--bg);
     color: var(--fg);
-    font-family: 'Inter', 'Helvetica Neue', 'Roboto', Arial, sans-serif;
+    font-family: var(--font);
     -webkit-font-smoothing: antialiased;
   }
 
-  #app {
+  /* Ambient glow + film grain */
+  body::before {
+    content: "";
     position: fixed;
     inset: 0;
-    display: flex;
-    flex-direction: column;
+    z-index: 0;
+    background:
+      radial-gradient(120% 60% at 50% -10%, rgba(216, 255, 58, 0.07), transparent 60%),
+      radial-gradient(100% 50% at 50% 115%, rgba(216, 255, 58, 0.05), transparent 55%);
+    pointer-events: none;
+  }
+  body::after {
+    content: "";
+    position: fixed;
+    inset: -50%;
+    z-index: 40;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    opacity: 0.055;
+    pointer-events: none;
+    animation: grain 0.9s steps(4) infinite;
+  }
+  @keyframes grain {
+    0%   { transform: translate(0, 0); }
+    25%  { transform: translate(-2%, 3%); }
+    50%  { transform: translate(3%, -2%); }
+    75%  { transform: translate(-3%, -3%); }
+    100% { transform: translate(2%, 2%); }
   }
 
-  /* ---------- Screens & Transitions ---------- */
+  #app { position: fixed; inset: 0; z-index: 1; }
+
+  /* ---------- Ticker ---------- */
+  .ticker {
+    position: fixed;
+    left: 0; right: 0;
+    z-index: 30;
+    overflow: hidden;
+    border-top: 1px solid var(--faint);
+    border-bottom: 1px solid var(--faint);
+    background: rgba(6, 6, 6, 0.7);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    pointer-events: none;
+  }
+  .ticker.top { top: env(safe-area-inset-top, 0); }
+  .ticker.bottom { bottom: env(safe-area-inset-bottom, 0); }
+  .ticker-track {
+    display: flex;
+    width: max-content;
+    animation: marquee 26s linear infinite;
+  }
+  .ticker.bottom .ticker-track { animation-direction: reverse; }
+  .ticker span {
+    padding: 8px 0;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .ticker span i {
+    font-style: normal;
+    color: var(--acid);
+    padding: 0 14px;
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  /* ---------- Screens ---------- */
   .screen {
     position: absolute;
     inset: 0;
@@ -55,51 +121,175 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
+    gap: 0;
+    padding: calc(46px + env(safe-area-inset-top)) 22px calc(46px + env(safe-area-inset-bottom));
     opacity: 0;
     visibility: hidden;
-    transform: translateY(8px);
-    transition: opacity .45s ease, transform .45s ease, visibility 0s linear .45s;
+    transform: translateY(10px) scale(0.995);
+    transition: opacity 0.4s ease, transform 0.4s ease, visibility 0s linear 0.4s;
+    overflow-y: auto;
   }
   .screen.active {
     opacity: 1;
     visibility: visible;
-    transform: translateY(0);
-    transition: opacity .45s ease .1s, transform .45s ease .1s, visibility 0s;
+    transform: translateY(0) scale(1);
+    transition: opacity 0.45s ease 0.08s, transform 0.45s ease 0.08s, visibility 0s;
   }
 
   /* ---------- Typography ---------- */
   .kicker {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: .35em;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.4em;
     text-transform: uppercase;
     color: var(--muted);
+    text-align: center;
   }
-  h1 {
-    font-size: clamp(52px, 17vw, 96px);
+  .kicker b { color: var(--acid); font-weight: 800; }
+
+  .logo {
+    font-size: clamp(44px, 14.5vw, 84px);
     font-weight: 900;
-    letter-spacing: -0.04em;
-    line-height: .9;
+    letter-spacing: -0.045em;
+    line-height: 0.92;
     text-transform: uppercase;
     text-align: center;
   }
-  .headline {
-    font-size: clamp(30px, 9vw, 52px);
+  .logo .block {
+    display: inline-block;
+    width: 0.62em;
+    height: 0.72em;
+    margin: 0 0.015em;
+    background: var(--acid);
+    transform: translateY(0.04em);
+    box-shadow: 0 0 34px rgba(216, 255, 58, 0.35);
+  }
+
+  .display {
+    font-size: clamp(30px, 9.5vw, 54px);
     font-weight: 900;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.035em;
     line-height: 1.02;
     text-transform: uppercase;
     text-align: center;
+    text-wrap: balance;
   }
   .sub {
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: .02em;
-    line-height: 1.6;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    line-height: 1.65;
     color: var(--muted);
     text-align: center;
-    max-width: 320px;
+    max-width: 300px;
+  }
+
+  .stack {
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ---------- Menu: player stepper ---------- */
+  .player-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 380px;
+    border-top: 1px solid var(--faint);
+    border-bottom: 1px solid var(--faint);
+    padding: 10px 2px;
+    margin: 26px 0 4px;
+  }
+  .player-row .label {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .stepper { display: flex; align-items: center; gap: 18px; }
+  .stepper button {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--fg);
+    border: 1px solid rgba(244, 244, 242, 0.3);
+    font-family: var(--font);
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s, opacity 0.2s, transform 0.08s;
+  }
+  .stepper button:active {
+    background: var(--acid);
+    border-color: var(--acid);
+    color: #000;
+    transform: scale(0.94);
+  }
+  .stepper button:disabled { opacity: 0.18; pointer-events: none; }
+  .stepper .count {
+    min-width: 64px;
+    text-align: center;
+    font-size: 40px;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- Menu: category list ---------- */
+  .menu-list { width: 100%; max-width: 380px; }
+  .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--faint);
+    padding: 21px 2px;
+    color: var(--fg);
+    font-family: var(--font);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s, padding 0.15s;
+  }
+  .menu-item:active { background: rgba(216, 255, 58, 0.08); padding-left: 10px; }
+  .menu-item .idx {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .menu-item .name {
+    flex: 1;
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+  .menu-item .arrow {
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--muted);
+    transition: color 0.15s, transform 0.15s;
+  }
+  .menu-item:active .arrow { color: var(--acid); transform: translateX(4px); }
+  .menu-item.hot .name { color: var(--acid); }
+  .menu-item .tag {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: #000;
+    background: var(--acid);
+    padding: 4px 8px;
   }
 
   /* ---------- Buttons ---------- */
@@ -107,368 +297,405 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 12px;
     width: 100%;
-    max-width: 400px;
-    min-height: 68px;
+    max-width: 380px;
+    min-height: 64px;
     padding: 18px 24px;
-    background: transparent;
-    color: var(--fg);
-    border: 2px solid var(--fg);
-    font-family: inherit;
-    font-size: 17px;
-    font-weight: 800;
-    letter-spacing: .18em;
+    background: var(--acid);
+    color: #000;
+    border: none;
+    font-family: var(--font);
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
     cursor: pointer;
-    transition: background .15s ease, color .15s ease, transform .08s ease;
+    box-shadow: 0 0 40px rgba(216, 255, 58, 0.18);
+    transition: transform 0.08s, box-shadow 0.15s, background 0.15s;
   }
   .btn:active {
-    background: var(--fg);
-    color: var(--bg);
-    transform: scale(.98);
+    transform: scale(0.97);
+    box-shadow: 0 0 60px rgba(216, 255, 58, 0.4);
   }
-  .btn.solid {
-    background: var(--fg);
-    color: var(--bg);
-  }
-  .btn.solid:active {
+  .btn.outline {
     background: transparent;
     color: var(--fg);
+    border: 1px solid rgba(244, 244, 242, 0.3);
+    box-shadow: none;
   }
+  .btn.outline:active { background: rgba(244, 244, 242, 0.08); }
   .btn.ghost {
-    border-color: transparent;
-    color: var(--muted);
-    min-height: 52px;
-    font-size: 12px;
-    letter-spacing: .3em;
-  }
-  .btn.ghost:active {
-    background: var(--tap);
-    color: var(--fg);
-  }
-
-  .stack {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    width: 100%;
-    max-width: 400px;
-    align-items: center;
-  }
-
-  /* ---------- Setup: Stepper ---------- */
-  .stepper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 28px;
-    margin: 8px 0 4px;
-  }
-  .stepper button {
-    width: 68px;
-    height: 68px;
     background: transparent;
-    color: var(--fg);
-    border: 2px solid var(--fg);
-    font-family: inherit;
-    font-size: 30px;
-    font-weight: 900;
-    cursor: pointer;
-    transition: background .15s ease, color .15s ease, opacity .2s ease;
+    color: var(--muted);
+    border: none;
+    box-shadow: none;
+    min-height: 48px;
+    font-size: 11px;
+    letter-spacing: 0.36em;
   }
-  .stepper button:active { background: var(--fg); color: var(--bg); }
-  .stepper button:disabled { opacity: .2; pointer-events: none; }
-  .stepper .count {
-    font-size: 72px;
-    font-weight: 900;
-    letter-spacing: -0.04em;
-    min-width: 110px;
-    text-align: center;
-    font-variant-numeric: tabular-nums;
-  }
+  .btn.ghost:active { color: var(--acid); }
 
-  .divider {
-    width: 44px;
-    height: 2px;
-    background: var(--line);
-    margin: 22px 0;
-  }
-
-  /* ---------- Modal ---------- */
+  /* ---------- Rules modal ---------- */
   #modal {
     position: fixed;
     inset: 0;
     z-index: 50;
-    background: rgba(0, 0, 0, 0.92);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgba(4, 4, 4, 0.94);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 28px;
+    padding: 26px;
     opacity: 0;
     visibility: hidden;
-    transition: opacity .35s ease, visibility 0s linear .35s;
+    transition: opacity 0.3s ease, visibility 0s linear 0.3s;
   }
-  #modal.open {
-    opacity: 1;
-    visibility: visible;
-    transition: opacity .35s ease, visibility 0s;
-  }
+  #modal.open { opacity: 1; visibility: visible; transition: opacity 0.3s ease, visibility 0s; }
   .modal-box {
     width: 100%;
-    max-width: 400px;
-    border: 2px solid var(--fg);
-    padding: 34px 28px;
-    background: var(--bg);
+    max-width: 380px;
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 26px;
+    max-height: 82vh;
+    overflow-y: auto;
   }
   .modal-box h2 {
-    font-size: 26px;
+    font-size: 34px;
     font-weight: 900;
-    letter-spacing: .08em;
+    letter-spacing: -0.03em;
     text-transform: uppercase;
   }
-  .rule {
-    display: flex;
-    gap: 16px;
-    align-items: baseline;
-  }
+  .modal-box h2 em { font-style: normal; color: var(--acid); }
+  .rule { display: flex; gap: 16px; align-items: baseline; border-top: 1px solid var(--faint); padding-top: 16px; }
   .rule .num {
-    font-size: 15px;
+    font-size: 12px;
     font-weight: 900;
-    color: var(--muted);
+    color: var(--acid);
     flex-shrink: 0;
     font-variant-numeric: tabular-nums;
   }
   .rule p {
     font-size: 14px;
     font-weight: 500;
-    line-height: 1.55;
-    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.6;
+    color: rgba(244, 244, 242, 0.82);
   }
 
-  /* ---------- Reveal (pass phone) ---------- */
-  #revealCard {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 26px;
-    padding: 32px;
+  /* ---------- Reveal (pass the phone) ---------- */
+  #screen-reveal {
     cursor: pointer;
+    transition: opacity 0.4s ease, transform 0.4s ease, visibility 0s linear 0.4s, background 0.25s ease;
   }
-  .word-frame {
+  #screen-reveal.active { transition: opacity 0.45s ease 0.08s, transform 0.45s ease 0.08s, visibility 0s, background 0.25s ease; }
+
+  .pass-card {
+    position: relative;
+    width: 100%;
+    max-width: 380px;
+    min-height: 320px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 18px;
-    border: 2px solid var(--fg);
-    padding: 52px 30px;
-    width: 100%;
-    max-width: 400px;
-    min-height: 240px;
     justify-content: center;
+    gap: 20px;
+    padding: 44px 26px;
+    border: 1px solid rgba(244, 244, 242, 0.22);
+    transition: border-color 0.25s;
   }
-  .secret-word {
-    font-size: clamp(34px, 11vw, 58px);
-    font-weight: 900;
-    letter-spacing: -0.02em;
+  /* Crop marks */
+  .pass-card i {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-color: var(--acid);
+    border-style: solid;
+    border-width: 0;
+  }
+  .pass-card i:nth-child(1) { top: -1px; left: -1px; border-top-width: 2px; border-left-width: 2px; }
+  .pass-card i:nth-child(2) { top: -1px; right: -1px; border-top-width: 2px; border-right-width: 2px; }
+  .pass-card i:nth-child(3) { bottom: -1px; left: -1px; border-bottom-width: 2px; border-left-width: 2px; }
+  .pass-card i:nth-child(4) { bottom: -1px; right: -1px; border-bottom-width: 2px; border-right-width: 2px; }
+
+  .pass-num {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.4em;
     text-transform: uppercase;
+    color: var(--acid);
+  }
+  .tap-hint {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    line-height: 1;
-    word-break: break-word;
+    gap: 10px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--muted);
   }
-  .reveal-progress {
-    display: flex;
-    gap: 8px;
-  }
-  .reveal-progress i {
+  .tap-hint::before {
+    content: "";
     width: 8px;
     height: 8px;
-    background: var(--line);
-    transition: background .3s ease;
+    border-radius: 50%;
+    background: var(--acid);
+    animation: blink 1.4s ease-in-out infinite;
   }
-  .reveal-progress i.done { background: var(--fg); }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.15; } }
 
-  /* ---------- Timer ---------- */
-  .timer {
-    font-size: clamp(96px, 34vw, 180px);
+  .dots { display: flex; gap: 9px; margin-top: 30px; }
+  .dots i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(244, 244, 242, 0.16);
+    transition: background 0.3s, transform 0.3s;
+  }
+  .dots i.done { background: var(--acid); }
+  .dots i.now { transform: scale(1.5); background: var(--fg); }
+
+  /* Exposed state: whole screen inverts to acid */
+  #screen-reveal.exposed { background: var(--acid); }
+  #screen-reveal.exposed .pass-card { border-color: rgba(0, 0, 0, 0.35); }
+  #screen-reveal.exposed .pass-card i { border-color: #000; }
+  #screen-reveal.exposed .pass-num,
+  #screen-reveal.exposed .display,
+  #screen-reveal.exposed .kicker,
+  #screen-reveal.exposed .sub { color: #000; }
+  #screen-reveal.exposed .tap-hint { color: rgba(0, 0, 0, 0.55); }
+  #screen-reveal.exposed .tap-hint::before { background: #000; }
+  #screen-reveal.exposed .dots i { background: rgba(0, 0, 0, 0.2); }
+  #screen-reveal.exposed .dots i.done { background: #000; }
+  #screen-reveal.exposed .dots i.now { background: #000; }
+
+  .secret {
+    font-size: clamp(36px, 11.5vw, 60px);
     font-weight: 900;
-    letter-spacing: -0.05em;
+    letter-spacing: -0.03em;
     line-height: 1;
-    font-variant-numeric: tabular-nums;
-    transition: color .3s ease;
-  }
-  .timer.critical { color: #ff2d2d; }
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.04); }
-  }
-  .timer.critical { animation: pulse 1s ease-in-out infinite; }
-
-  /* ---------- Result ---------- */
-  .impostor-name {
-    font-size: clamp(44px, 14vw, 80px);
-    font-weight: 900;
-    letter-spacing: -0.04em;
-    line-height: .95;
     text-transform: uppercase;
     text-align: center;
+    word-break: break-word;
+    animation: pop 0.35s cubic-bezier(0.2, 1.4, 0.4, 1) both;
   }
-  .word-pair {
+  @keyframes pop {
+    from { opacity: 0; transform: scale(0.8); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  /* ---------- Timer ---------- */
+  .ring-wrap {
+    position: relative;
+    width: min(72vw, 300px);
+    aspect-ratio: 1;
     display: flex;
-    flex-direction: column;
-    gap: 12px;
-    width: 100%;
-    max-width: 400px;
+    align-items: center;
+    justify-content: center;
+    margin: 30px 0 26px;
   }
+  .ring-wrap svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+  .ring-track { fill: none; stroke: rgba(244, 244, 242, 0.1); stroke-width: 2.5; }
+  .ring-fill {
+    fill: none;
+    stroke: var(--acid);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 8px rgba(216, 255, 58, 0.5));
+    transition: stroke-dashoffset 1s linear, stroke 0.4s;
+  }
+  .ring-wrap.critical .ring-fill { stroke: var(--danger); filter: drop-shadow(0 0 8px rgba(255, 59, 48, 0.6)); }
+  .timer-num {
+    font-size: clamp(64px, 22vw, 108px);
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    transition: color 0.4s;
+  }
+  .ring-wrap.critical .timer-num { color: var(--danger); animation: throb 1s ease-in-out infinite; }
+  @keyframes throb { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+  /* ---------- Truth ---------- */
+  #flash {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: var(--acid);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  #flash.go { visibility: visible; animation: flash 0.7s ease-out both; }
+  @keyframes flash {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  .impostor-name {
+    font-size: clamp(44px, 15vw, 78px);
+    font-weight: 900;
+    letter-spacing: -0.045em;
+    line-height: 0.95;
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--acid);
+    text-shadow: 0 0 50px rgba(216, 255, 58, 0.35);
+    animation: pop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) 0.15s both;
+  }
+
+  .word-pair { width: 100%; max-width: 380px; margin: 30px 0 24px; }
   .word-row {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    border-bottom: 1px solid var(--line);
-    padding: 12px 4px;
+    gap: 16px;
+    border-top: 1px solid var(--faint);
+    padding: 14px 2px;
   }
+  .word-row:last-child { border-bottom: 1px solid var(--faint); }
   .word-row .label {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: .3em;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.32em;
     text-transform: uppercase;
     color: var(--muted);
+    flex-shrink: 0;
   }
   .word-row .value {
-    font-size: 20px;
+    font-size: 19px;
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: -0.01em;
     text-align: right;
   }
-  .penalty-box {
-    border: 2px solid var(--fg);
-    padding: 22px 24px;
+  .word-row.spy .value, .word-row.spy .label { color: var(--acid); }
+
+  .penalty {
     width: 100%;
-    max-width: 400px;
+    max-width: 380px;
+    border: 1px dashed rgba(216, 255, 58, 0.5);
+    padding: 22px 22px;
     text-align: center;
+    margin-bottom: 30px;
   }
-  .penalty-box .label {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: .3em;
+  .penalty .label {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.34em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--acid);
     margin-bottom: 12px;
   }
-  .penalty-box p {
-    font-size: 15px;
+  .penalty p {
+    font-size: 13px;
     font-weight: 700;
-    line-height: 1.6;
+    line-height: 1.7;
     text-transform: uppercase;
-    letter-spacing: .04em;
+    letter-spacing: 0.05em;
+    color: rgba(244, 244, 242, 0.88);
   }
-
-  @keyframes flashIn {
-    0% { opacity: 0; transform: scale(1.15); filter: blur(6px); }
-    100% { opacity: 1; transform: scale(1); filter: blur(0); }
-  }
-  .flash-in { animation: flashIn .6s cubic-bezier(.2, .9, .3, 1) both; }
-
-  .footer-hint {
-    position: absolute;
-    bottom: max(20px, env(safe-area-inset-bottom));
-    left: 0;
-    right: 0;
-    text-align: center;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: .4em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.22);
-    pointer-events: none;
-  }
+  .penalty p b { color: var(--acid); font-weight: 900; }
 </style>
 </head>
 <body>
+
+<div class="ticker top"><div class="ticker-track" id="tickerTop"></div></div>
+<div class="ticker bottom"><div class="ticker-track" id="tickerBottom"></div></div>
+<div id="flash"></div>
+
 <div id="app">
 
-  <!-- ============ PHASE 1: SETUP ============ -->
+  <!-- ============ PHASE 1: MENU ============ -->
   <section class="screen active" id="screen-menu">
-    <span class="kicker">Social Deduction · Trinkspiel</span>
-    <h1 style="margin:14px 0 6px;">IMPO<br>STOR</h1>
-    <div class="divider"></div>
+    <span class="kicker">Das Social-Deduction-Trinkspiel</span>
+    <div class="logo" style="margin-top:16px;">VERD<span class="block"></span>CHT</div>
 
-    <span class="kicker" style="margin-bottom:6px;">Spieler</span>
-    <div class="stepper">
-      <button id="btnMinus" aria-label="Weniger Spieler">&minus;</button>
-      <div class="count" id="playerCount">5</div>
-      <button id="btnPlus" aria-label="Mehr Spieler">+</button>
+    <div class="player-row">
+      <span class="label">Spieler</span>
+      <div class="stepper">
+        <button id="btnMinus" aria-label="Weniger Spieler">&minus;</button>
+        <span class="count" id="playerCount">5</span>
+        <button id="btnPlus" aria-label="Mehr Spieler">+</button>
+      </div>
     </div>
 
-    <div class="divider"></div>
-
-    <div class="stack">
-      <button class="btn" data-cat="standard">Standard</button>
-      <button class="btn" data-cat="mittel">Mittel</button>
-      <button class="btn" data-cat="extrem">Extrem</button>
-      <button class="btn" data-cat="intim">+18 Intim</button>
-      <button class="btn ghost" id="btnRules">Regeln</button>
+    <div class="menu-list">
+      <button class="menu-item" data-cat="standard">
+        <span class="idx">01</span><span class="name">Standard</span><span class="arrow">&rarr;</span>
+      </button>
+      <button class="menu-item" data-cat="mittel">
+        <span class="idx">02</span><span class="name">Mittel</span><span class="arrow">&rarr;</span>
+      </button>
+      <button class="menu-item" data-cat="extrem">
+        <span class="idx">03</span><span class="name">Extrem</span><span class="arrow">&rarr;</span>
+      </button>
+      <button class="menu-item hot" data-cat="intim">
+        <span class="idx">04</span><span class="name">Intim</span><span class="tag">18+</span><span class="arrow">&rarr;</span>
+      </button>
     </div>
+
+    <button class="btn ghost" id="btnRules" style="margin-top:18px;">Regeln</button>
   </section>
 
   <!-- ============ PHASE 2: REVEAL ============ -->
   <section class="screen" id="screen-reveal">
-    <div id="revealCard">
-      <span class="kicker" id="revealKicker">Geheime Übergabe</span>
-      <div class="word-frame" id="wordFrame">
-        <div class="headline" id="revealTitle">Spieler 1</div>
-        <div class="sub" id="revealSub">Tippen zum Einsehen</div>
-      </div>
-      <div class="reveal-progress" id="revealProgress"></div>
+    <div class="pass-card" id="passCard">
+      <i></i><i></i><i></i><i></i>
+      <span class="pass-num" id="revealCat">Standard</span>
+      <div class="display" id="revealTitle">Spieler 01</div>
+      <span class="tap-hint" id="revealHint">Tippen zum Einsehen</span>
     </div>
-    <div class="footer-hint">Handy verdeckt weitergeben</div>
+    <div class="dots" id="revealDots"></div>
   </section>
 
   <!-- ============ PHASE 3: DISCUSSION ============ -->
   <section class="screen" id="screen-discussion">
-    <span class="kicker">Diskussion</span>
-    <div class="timer" id="timer" style="margin:26px 0 18px;">90</div>
-    <p class="sub" style="margin-bottom:44px;">Sagt reihum euer Wort<br>und diskutiert!</p>
-    <button class="btn solid" id="btnToVerdict">Zur Auflösung</button>
+    <span class="kicker">Diskussion <b>&middot;</b> Live</span>
+    <div class="ring-wrap" id="ringWrap">
+      <svg viewBox="0 0 120 120">
+        <circle class="ring-track" cx="60" cy="60" r="56"></circle>
+        <circle class="ring-fill" id="ringFill" cx="60" cy="60" r="56"></circle>
+      </svg>
+      <span class="timer-num" id="timerNum">90</span>
+    </div>
+    <p class="sub" style="margin-bottom:38px;">Sagt reihum euer Wort<br>und diskutiert!</p>
+    <button class="btn outline" id="btnToVerdict">Zur Auflösung</button>
   </section>
 
   <!-- ============ PHASE 4a: VERDICT ============ -->
   <section class="screen" id="screen-verdict">
     <span class="kicker">Das Urteil</span>
-    <div class="headline" style="margin:26px 0 44px; max-width:340px;">Zählt von 3 runter und zeigt gleichzeitig auf den Impostor!</div>
-    <button class="btn solid" id="btnRevealTruth">Wer war es?</button>
+    <div class="display" style="margin:24px 0 40px; max-width:330px;">Zählt von 3 runter und zeigt gleichzeitig auf den Spion!</div>
+    <button class="btn" id="btnRevealTruth">Wer war es?</button>
   </section>
 
   <!-- ============ PHASE 4b: TRUTH ============ -->
   <section class="screen" id="screen-truth">
-    <span class="kicker">Der Impostor war</span>
-    <div class="impostor-name flash-in" id="impostorName" style="margin:18px 0 30px;">Spieler ?</div>
+    <span class="kicker">Der Spion war</span>
+    <div class="impostor-name" id="impostorName" style="margin-top:14px;">Spieler ?</div>
 
-    <div class="word-pair" style="margin-bottom:26px;">
+    <div class="word-pair">
       <div class="word-row">
         <span class="label">Zivilisten</span>
-        <span class="value" id="civilianWord">—</span>
+        <span class="value" id="civilianWord">&mdash;</span>
       </div>
-      <div class="word-row">
-        <span class="label">Impostor</span>
-        <span class="value" id="impostorWord">—</span>
+      <div class="word-row spy">
+        <span class="label">Spion</span>
+        <span class="value" id="impostorWord">&mdash;</span>
       </div>
     </div>
 
-    <div class="penalty-box" style="margin-bottom:34px;">
+    <div class="penalty">
       <div class="label">Sauf-Abrechnung</div>
-      <p id="penaltyText">—</p>
+      <p id="penaltyText">&mdash;</p>
     </div>
 
-    <button class="btn" id="btnNewGame">Neues Spiel</button>
+    <button class="btn outline" id="btnNewGame">Neues Spiel</button>
   </section>
 
 </div>
@@ -476,10 +703,10 @@
 <!-- ============ RULES MODAL ============ -->
 <div id="modal">
   <div class="modal-box">
-    <h2>Regeln</h2>
+    <h2>Die<br><em>Regeln</em></h2>
     <div class="rule"><span class="num">01</span><p>Jedes Mal sieht eine Person heimlich ein leicht anderes Wort als der Rest.</p></div>
     <div class="rule"><span class="num">02</span><p>Reihum sagt jeder am Tisch genau EIN Wort, das zu seinem Begriff passt.</p></div>
-    <div class="rule"><span class="num">03</span><p>Der Impostor muss faken und versuchen, nicht aufzufallen.</p></div>
+    <div class="rule"><span class="num">03</span><p>Der Spion muss faken und versuchen, nicht aufzufallen.</p></div>
     <div class="rule"><span class="num">04</span><p>Diskutiert, stimmt ab und zeigt nach Ablauf der Zeit alle gleichzeitig auf den Spion!</p></div>
     <button class="btn" id="btnCloseModal">Verstanden</button>
   </div>
@@ -541,30 +768,13 @@
     ]
   };
 
-  var CATEGORY_LABEL = {
-    standard: 'Standard',
-    mittel: 'Mittel',
-    extrem: 'Extrem',
-    intim: '+18 Intim'
-  };
+  var CATEGORY_LABEL = { standard: 'Standard', mittel: 'Mittel', extrem: 'Extrem', intim: 'Intim 18+' };
 
   var PENALTIES = {
-    standard: {
-      caught: 'Impostor erwischt? Der Impostor trinkt 5 Schlucke.',
-      escaped: 'Impostor entkommen? Alle Zivilisten trinken 3 Schlucke!'
-    },
-    mittel: {
-      caught: 'Impostor erwischt? Der Impostor trinkt 7 Schlucke.',
-      escaped: 'Impostor entkommen? Alle Zivilisten trinken 5 Schlucke!'
-    },
-    extrem: {
-      caught: 'Impostor erwischt? Der Impostor ext sein Glas!',
-      escaped: 'Impostor entkommen? Alle Zivilisten exen ihr Glas!'
-    },
-    intim: {
-      caught: 'Impostor erwischt? Der Impostor trinkt 5 Schlucke und beantwortet eine intime Frage.',
-      escaped: 'Impostor entkommen? Alle Zivilisten trinken 3 Schlucke und der Impostor stellt eine intime Frage!'
-    }
+    standard: 'Spion erwischt? <b>Der Spion trinkt 5 Schlucke.</b><br>Spion entkommen? <b>Alle Zivilisten trinken 3 Schlucke!</b>',
+    mittel:   'Spion erwischt? <b>Der Spion trinkt 7 Schlucke.</b><br>Spion entkommen? <b>Alle Zivilisten trinken 5 Schlucke!</b>',
+    extrem:   'Spion erwischt? <b>Der Spion ext sein Glas!</b><br>Spion entkommen? <b>Alle Zivilisten exen ihr Glas!</b>',
+    intim:    'Spion erwischt? <b>Der Spion trinkt 5 Schlucke</b> und beantwortet eine intime Frage.<br>Spion entkommen? <b>Alle Zivilisten trinken 3 Schlucke</b> und der Spion stellt eine intime Frage!'
   };
 
   /* ================= STATE ================= */
@@ -574,7 +784,7 @@
     impostorIndex: 0,
     civilianWord: '',
     impostorWord: '',
-    currentPlayer: 0,   // 0-based index of the player currently holding the phone
+    currentPlayer: 0,
     wordVisible: false,
     hideTimeout: null,
     timerInterval: null,
@@ -583,6 +793,17 @@
 
   var MIN_PLAYERS = 3;
   var MAX_PLAYERS = 10;
+  var ROUND_SECONDS = 90;
+
+  /* ================= TICKER ================= */
+  var TICKER_TEXT = 'Ein Wort <i>&middot;</i> Ein Spion <i>&middot;</i> Kein Erbarmen <i>&middot;</i> Verdacht <i>&middot;</i> ';
+  function fillTicker(id) {
+    var el = document.getElementById(id);
+    var span = '<span>' + TICKER_TEXT.repeat(4) + '</span>';
+    el.innerHTML = span + span; // duplicated for a seamless -50% loop
+  }
+  fillTicker('tickerTop');
+  fillTicker('tickerBottom');
 
   /* ================= AUDIO & HAPTICS ================= */
   var audioCtx = null;
@@ -607,12 +828,12 @@
     var osc = ctx.createOscillator();
     var gain = ctx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(1400, t);
-    gain.gain.setValueAtTime(0.12, t);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+    osc.frequency.setValueAtTime(1500, t);
+    gain.gain.setValueAtTime(0.1, t);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
     osc.connect(gain).connect(ctx.destination);
     osc.start(t);
-    osc.stop(t + 0.08);
+    osc.stop(t + 0.07);
   }
 
   function bassDrop() {
@@ -620,27 +841,25 @@
     if (!ctx) return;
     var t = ctx.currentTime;
 
-    // Deep sub-bass sweep
     var osc = ctx.createOscillator();
     var gain = ctx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(160, t);
-    osc.frequency.exponentialRampToValueAtTime(32, t + 1.1);
+    osc.frequency.setValueAtTime(170, t);
+    osc.frequency.exponentialRampToValueAtTime(30, t + 1.2);
     gain.gain.setValueAtTime(0.0001, t);
-    gain.gain.exponentialRampToValueAtTime(0.9, t + 0.06);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.4);
+    gain.gain.exponentialRampToValueAtTime(0.9, t + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.5);
     osc.connect(gain).connect(ctx.destination);
     osc.start(t);
-    osc.stop(t + 1.5);
+    osc.stop(t + 1.6);
 
-    // Impact layer for punch
     var osc2 = ctx.createOscillator();
     var gain2 = ctx.createGain();
     osc2.type = 'triangle';
-    osc2.frequency.setValueAtTime(90, t);
-    osc2.frequency.exponentialRampToValueAtTime(40, t + 0.25);
+    osc2.frequency.setValueAtTime(95, t);
+    osc2.frequency.exponentialRampToValueAtTime(38, t + 0.25);
     gain2.gain.setValueAtTime(0.5, t);
-    gain2.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+    gain2.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
     osc2.connect(gain2).connect(ctx.destination);
     osc2.start(t);
     osc2.stop(t + 0.35);
@@ -653,6 +872,8 @@
 
   /* ================= HELPERS ================= */
   function $(id) { return document.getElementById(id); }
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function randInt(n) { return Math.floor(Math.random() * n); }
 
   function showScreen(id) {
     var screens = document.querySelectorAll('.screen');
@@ -661,9 +882,7 @@
     }
   }
 
-  function randInt(n) { return Math.floor(Math.random() * n); }
-
-  /* ================= PHASE 1: SETUP ================= */
+  /* ================= PHASE 1: MENU ================= */
   function updateStepper() {
     $('playerCount').textContent = state.players;
     $('btnMinus').disabled = state.players <= MIN_PLAYERS;
@@ -703,7 +922,6 @@
     var pool = WORDS[category];
     var pair = pool[randInt(pool.length)];
 
-    // Randomize which of the two words the impostor gets
     if (Math.random() < 0.5) {
       state.civilianWord = pair[0];
       state.impostorWord = pair[1];
@@ -716,77 +934,90 @@
     state.currentPlayer = 0;
     state.wordVisible = false;
 
-    buildProgress();
-    renderRevealCovered();
+    buildDots();
+    renderCovered();
     showScreen('screen-reveal');
   }
 
-  function buildProgress() {
-    var el = $('revealProgress');
+  function buildDots() {
+    var el = $('revealDots');
     el.innerHTML = '';
-    for (var i = 0; i < state.players; i++) {
-      el.appendChild(document.createElement('i'));
-    }
+    for (var i = 0; i < state.players; i++) el.appendChild(document.createElement('i'));
   }
 
-  function updateProgress() {
-    var dots = $('revealProgress').children;
+  function updateDots() {
+    var dots = $('revealDots').children;
     for (var i = 0; i < dots.length; i++) {
       dots[i].classList.toggle('done', i < state.currentPlayer);
+      dots[i].classList.toggle('now', i === state.currentPlayer);
     }
   }
 
-  function renderRevealCovered() {
-    var n = state.currentPlayer + 1;
-    $('revealKicker').textContent = CATEGORY_LABEL[state.category];
+  function renderCovered() {
+    $('screen-reveal').classList.remove('exposed');
+    $('revealCat').textContent = CATEGORY_LABEL[state.category];
     if (state.currentPlayer === 0) {
-      $('revealTitle').textContent = 'Spieler 1';
-      $('revealSub').textContent = 'Tippen zum Einsehen';
+      $('revealTitle').textContent = 'Spieler ' + pad(1);
     } else {
-      $('revealTitle').textContent = 'Weitergeben an Spieler ' + n;
-      $('revealSub').textContent = 'Tippen zum Einsehen';
+      $('revealTitle').textContent = 'Weitergeben an Spieler ' + pad(state.currentPlayer + 1);
     }
-    updateProgress();
+    $('revealHint').textContent = 'Tippen zum Einsehen';
+    updateDots();
   }
 
-  function renderRevealWord() {
+  function renderExposed() {
     var isImpostor = state.currentPlayer === state.impostorIndex;
     var word = isImpostor ? state.impostorWord : state.civilianWord;
-    $('revealTitle').innerHTML = '<span class="secret-word">' + word + '</span>';
-    $('revealSub').textContent = 'Merken. Tippen zum Verdecken.';
+    $('screen-reveal').classList.add('exposed');
+    $('revealTitle').innerHTML = '<span class="secret">' + word + '</span>';
+    $('revealHint').textContent = 'Tippen zum Verdecken';
   }
 
-  $('revealCard').addEventListener('click', function () {
+  $('screen-reveal').addEventListener('click', function () {
     tap();
     if (!state.wordVisible) {
-      // Show the secret word
       state.wordVisible = true;
-      renderRevealWord();
-      state.hideTimeout = setTimeout(hideWordAndAdvance, 3000);
+      renderExposed();
+      state.hideTimeout = setTimeout(hideAndAdvance, 3000);
     } else {
-      // Tapped again before the 3s ran out
       clearTimeout(state.hideTimeout);
-      hideWordAndAdvance();
+      hideAndAdvance();
     }
   });
 
-  function hideWordAndAdvance() {
+  function hideAndAdvance() {
     state.wordVisible = false;
     state.currentPlayer++;
     if (state.currentPlayer >= state.players) {
       startDiscussion();
     } else {
-      renderRevealCovered();
+      renderCovered();
     }
   }
 
   /* ================= PHASE 3: DISCUSSION ================= */
+  var RING_CIRC = 2 * Math.PI * 56;
+  $('ringFill').style.strokeDasharray = RING_CIRC;
+
+  function setRing(secondsLeft) {
+    var frac = secondsLeft / ROUND_SECONDS;
+    $('ringFill').style.strokeDashoffset = RING_CIRC * (1 - frac);
+  }
+
   function startDiscussion() {
-    state.timeLeft = 90;
-    var timerEl = $('timer');
-    timerEl.textContent = state.timeLeft;
-    timerEl.classList.remove('critical');
+    state.timeLeft = ROUND_SECONDS;
+    $('timerNum').textContent = state.timeLeft;
+    $('ringWrap').classList.remove('critical');
+    $('ringFill').style.transition = 'none';
+    setRing(ROUND_SECONDS);
     showScreen('screen-discussion');
+
+    // Re-enable the smooth 1s transition after the initial reset paint
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        $('ringFill').style.transition = '';
+      });
+    });
 
     clearInterval(state.timerInterval);
     state.timerInterval = setInterval(function () {
@@ -796,8 +1027,9 @@
         clearInterval(state.timerInterval);
         vibrate([80, 60, 80]);
       }
-      timerEl.textContent = state.timeLeft;
-      if (state.timeLeft <= 10) timerEl.classList.add('critical');
+      $('timerNum').textContent = state.timeLeft;
+      setRing(state.timeLeft);
+      if (state.timeLeft <= 10) $('ringWrap').classList.add('critical');
     }, 1000);
   }
 
@@ -812,18 +1044,20 @@
     bassDrop();
     vibrate([100, 50, 100, 50, 400]);
 
-    $('impostorName').textContent = 'Spieler ' + (state.impostorIndex + 1);
+    var flash = $('flash');
+    flash.classList.remove('go');
+    void flash.offsetWidth;
+    flash.classList.add('go');
+
+    $('impostorName').textContent = 'Spieler ' + pad(state.impostorIndex + 1);
     $('civilianWord').textContent = state.civilianWord;
     $('impostorWord').textContent = state.impostorWord;
+    $('penaltyText').innerHTML = PENALTIES[state.category];
 
-    var p = PENALTIES[state.category];
-    $('penaltyText').innerHTML = p.caught + '<br><br>' + p.escaped;
-
-    // Retrigger the flash-in animation
     var nameEl = $('impostorName');
-    nameEl.classList.remove('flash-in');
+    nameEl.style.animation = 'none';
     void nameEl.offsetWidth;
-    nameEl.classList.add('flash-in');
+    nameEl.style.animation = '';
 
     showScreen('screen-truth');
   });

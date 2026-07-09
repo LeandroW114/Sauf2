@@ -1,6 +1,6 @@
-# IMPOSTOR
+# VERDACHT
 
-Das Social-Deduction-Trinkspiel im Undercover-Stil. Ein Handy, ein Spion, ein Wort — für 3 bis 10 Spieler.
+Das Social-Deduction-Trinkspiel im Undercover-Stil. Ein Wort. Ein Spion. Kein Erbarmen — für 3 bis 10 Spieler.
 
 **Live spielen:** https://leandrow114.github.io/Sauf2/
 
@@ -13,12 +13,12 @@ Das Social-Deduction-Trinkspiel im Undercover-Stil. Ein Handy, ein Spion, ein Wo
 
 ## Features
 
-- Vier Kategorien: **Standard**, **Mittel**, **Extrem**, **+18 Intim** — je 10 Wortpaare
-- Pass-the-Phone-Modus mit verdeckter Wortübergabe
-- 90-Sekunden-Diskussions-Timer
+- Vier Kategorien: **Standard**, **Mittel**, **Extrem**, **Intim 18+** — je 10 Wortpaare
+- Pass-the-Phone-Modus mit verdeckter Wortübergabe (Wort-Screen invertiert in Acid-Lime)
+- 90-Sekunden-Countdown mit animiertem Fortschritts-Ring
 - Sauf-Abrechnung mit kategorieabhängigen Strafen
 - Sound (Web Audio API) und Haptik (Vibration API)
-- Brutalistischer Dark Mode, optimiert für Smartphones
+- Dark-Mode-Design mit Acid-Akzent, Film-Grain und Laufband-Ticker, optimiert für Smartphones
 
 ## Technik
 
