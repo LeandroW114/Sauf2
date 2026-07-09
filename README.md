@@ -9,14 +9,16 @@ Das Social-Deduction-Trinkspiel im Undercover-Stil. Ein Wort. Ein Spion. Kein Er
 1. Jedes Mal sieht eine Person heimlich ein leicht anderes Wort als der Rest.
 2. Reihum sagt jeder am Tisch genau EIN Wort, das zu seinem Begriff passt.
 3. Der Impostor muss faken und versuchen, nicht aufzufallen.
-4. Diskutiert, stimmt ab und zeigt nach Ablauf der Zeit alle gleichzeitig auf den Spion!
+4. Nach der Diskussion stimmt jeder geheim in der App ab. Wer die meisten Stimmen kassiert, steht am Pranger — und dann wird abgerechnet!
 
 ## Features
 
 - Vier Kategorien: **Standard**, **Mittel**, **Extrem**, **Intim 18+** — je 10 Wortpaare
+- Spielernamen-Eingabe vor jeder Runde
 - Pass-the-Phone-Modus mit verdeckter Wortübergabe (Wort-Screen invertiert in Acid-Lime)
 - 90-Sekunden-Countdown mit animiertem Fortschritts-Ring
-- Sauf-Abrechnung mit kategorieabhängigen Strafen
+- Geheime In-App-Abstimmung: Jeder tippt verdeckt, wen er für den Spion hält
+- Auflösung mit Stimmen-Tally, Erwischt/Entkommen-Verdikt und namentlicher Sauf-Abrechnung
 - Sound (Web Audio API) und Haptik (Vibration API)
 - Dark-Mode-Design mit Acid-Akzent, Film-Grain und Laufband-Ticker, optimiert für Smartphones
 

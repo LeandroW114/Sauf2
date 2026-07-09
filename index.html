@@ -336,6 +336,132 @@
   }
   .btn.ghost:active { color: var(--acid); }
 
+  /* ---------- Name entry ---------- */
+  .name-list { width: 100%; max-width: 380px; display: flex; flex-direction: column; }
+  .name-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 1px solid var(--faint);
+    padding: 2px 2px;
+  }
+  .name-row .idx {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .name-row input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--fg);
+    font-family: var(--font);
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    padding: 16px 0;
+    caret-color: var(--acid);
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  .name-row input::placeholder { color: rgba(244, 244, 242, 0.22); }
+  .name-row:focus-within { border-bottom-color: var(--acid); }
+  .name-row:focus-within .idx { color: var(--acid); }
+
+  /* ---------- Voting ---------- */
+  .vote-list { width: 100%; max-width: 380px; }
+  .vote-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--faint);
+    padding: 19px 2px;
+    color: var(--fg);
+    font-family: var(--font);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s, padding 0.15s;
+  }
+  .vote-item:active { background: rgba(216, 255, 58, 0.08); padding-left: 10px; }
+  .vote-item .idx {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .vote-item .name {
+    flex: 1;
+    font-size: 21px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .vote-item .arrow { font-size: 17px; font-weight: 900; color: var(--muted); }
+  .vote-item:active .arrow { color: var(--acid); }
+
+  /* ---------- Vote tally ---------- */
+  .tally { width: 100%; max-width: 380px; margin: 28px 0 4px; }
+  .tally-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border-top: 1px solid var(--faint);
+    padding: 12px 2px;
+  }
+  .tally-row:last-child { border-bottom: 1px solid var(--faint); }
+  .tally-row .name {
+    flex: 0 0 92px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tally-row.spy .name { color: var(--acid); }
+  .tally-bar { flex: 1; height: 7px; background: rgba(244, 244, 242, 0.08); overflow: hidden; }
+  .tally-bar i {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--fg);
+    transition: width 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 0.35s;
+  }
+  .tally-row.spy .tally-bar i { background: var(--acid); box-shadow: 0 0 12px rgba(216, 255, 58, 0.5); }
+  .tally-row .n {
+    width: 20px;
+    text-align: right;
+    font-size: 13px;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+  }
+  .tally-row.spy .n { color: var(--acid); }
+
+  .badge {
+    display: inline-block;
+    padding: 9px 16px;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+  .badge.caught { background: var(--acid); color: #000; }
+  .badge.escaped { background: var(--danger); color: #fff; }
+
   /* ---------- Rules modal ---------- */
   #modal {
     position: fixed;
@@ -537,7 +663,9 @@
   }
 
   .impostor-name {
-    font-size: clamp(44px, 15vw, 78px);
+    max-width: 100%;
+    word-break: break-word;
+    font-size: clamp(36px, 13vw, 70px);
     font-weight: 900;
     letter-spacing: -0.045em;
     line-height: 0.95;
@@ -642,6 +770,15 @@
     <button class="btn ghost" id="btnRules" style="margin-top:18px;">Regeln</button>
   </section>
 
+  <!-- ============ PHASE 1b: NAMES ============ -->
+  <section class="screen" id="screen-names">
+    <span class="kicker" id="namesCat">Standard</span>
+    <div class="display" style="margin:18px 0 26px;">Wer spielt mit?</div>
+    <div class="name-list" id="nameList"></div>
+    <button class="btn" id="btnStartReveal" style="margin-top:36px;">Los geht's</button>
+    <button class="btn ghost" id="btnBackToMenu" style="margin-top:8px;">Zurück</button>
+  </section>
+
   <!-- ============ PHASE 2: REVEAL ============ -->
   <section class="screen" id="screen-reveal">
     <div class="pass-card" id="passCard">
@@ -664,22 +801,42 @@
       <span class="timer-num" id="timerNum">90</span>
     </div>
     <p class="sub" style="margin-bottom:38px;">Sagt reihum euer Wort<br>und diskutiert!</p>
-    <button class="btn outline" id="btnToVerdict">Zur Auflösung</button>
+    <button class="btn outline" id="btnToVote">Zur Abstimmung</button>
   </section>
 
-  <!-- ============ PHASE 4a: VERDICT ============ -->
+  <!-- ============ PHASE 4a: SECRET VOTE ============ -->
+  <section class="screen" id="screen-vote">
+    <div class="pass-card" id="voteCover">
+      <i></i><i></i><i></i><i></i>
+      <span class="pass-num">Geheime Abstimmung</span>
+      <div class="display" id="voteCoverTitle">Name</div>
+      <span class="tap-hint">Tippen zum Abstimmen</span>
+    </div>
+    <div class="stack" id="voteBox" style="display:none;">
+      <span class="kicker">Deine Stimme, <b id="voteWho">Name</b></span>
+      <div class="display" style="margin:16px 0 10px; font-size:clamp(26px,8vw,42px);">Wer ist der Spion?</div>
+      <div class="vote-list" id="voteList"></div>
+    </div>
+    <div class="dots" id="voteDots"></div>
+  </section>
+
+  <!-- ============ PHASE 4b: VERDICT ============ -->
   <section class="screen" id="screen-verdict">
-    <span class="kicker">Das Urteil</span>
-    <div class="display" style="margin:24px 0 40px; max-width:330px;">Zählt von 3 runter und zeigt gleichzeitig auf den Spion!</div>
+    <span class="kicker">Abstimmung beendet</span>
+    <div class="display" style="margin:24px 0 14px; max-width:330px;">Alle Stimmen sind drin.</div>
+    <p class="sub" style="margin-bottom:40px;">Bereit für die Wahrheit?</p>
     <button class="btn" id="btnRevealTruth">Wer war es?</button>
   </section>
 
-  <!-- ============ PHASE 4b: TRUTH ============ -->
+  <!-- ============ PHASE 4c: TRUTH ============ -->
   <section class="screen" id="screen-truth">
     <span class="kicker">Der Spion war</span>
-    <div class="impostor-name" id="impostorName" style="margin-top:14px;">Spieler ?</div>
+    <div class="impostor-name" id="impostorName" style="margin-top:14px;">?</div>
+    <div class="badge caught" id="outcomeBadge" style="margin-top:20px;">Erwischt</div>
 
-    <div class="word-pair">
+    <div class="tally" id="tally"></div>
+
+    <div class="word-pair" style="margin:24px 0 24px;">
       <div class="word-row">
         <span class="label">Zivilisten</span>
         <span class="value" id="civilianWord">&mdash;</span>
@@ -691,7 +848,7 @@
     </div>
 
     <div class="penalty">
-      <div class="label">Sauf-Abrechnung</div>
+      <div class="label">Wer trinkt?</div>
       <p id="penaltyText">&mdash;</p>
     </div>
 
@@ -707,7 +864,7 @@
     <div class="rule"><span class="num">01</span><p>Jedes Mal sieht eine Person heimlich ein leicht anderes Wort als der Rest.</p></div>
     <div class="rule"><span class="num">02</span><p>Reihum sagt jeder am Tisch genau EIN Wort, das zu seinem Begriff passt.</p></div>
     <div class="rule"><span class="num">03</span><p>Der Spion muss faken und versuchen, nicht aufzufallen.</p></div>
-    <div class="rule"><span class="num">04</span><p>Diskutiert, stimmt ab und zeigt nach Ablauf der Zeit alle gleichzeitig auf den Spion!</p></div>
+    <div class="rule"><span class="num">04</span><p>Nach der Diskussion stimmt jeder geheim in der App ab. Wer die meisten Stimmen kassiert, steht am Pranger — und dann wird abgerechnet!</p></div>
     <button class="btn" id="btnCloseModal">Verstanden</button>
   </div>
 </div>
@@ -771,15 +928,28 @@
   var CATEGORY_LABEL = { standard: 'Standard', mittel: 'Mittel', extrem: 'Extrem', intim: 'Intim 18+' };
 
   var PENALTIES = {
-    standard: 'Spion erwischt? <b>Der Spion trinkt 5 Schlucke.</b><br>Spion entkommen? <b>Alle Zivilisten trinken 3 Schlucke!</b>',
-    mittel:   'Spion erwischt? <b>Der Spion trinkt 7 Schlucke.</b><br>Spion entkommen? <b>Alle Zivilisten trinken 5 Schlucke!</b>',
-    extrem:   'Spion erwischt? <b>Der Spion ext sein Glas!</b><br>Spion entkommen? <b>Alle Zivilisten exen ihr Glas!</b>',
-    intim:    'Spion erwischt? <b>Der Spion trinkt 5 Schlucke</b> und beantwortet eine intime Frage.<br>Spion entkommen? <b>Alle Zivilisten trinken 3 Schlucke</b> und der Spion stellt eine intime Frage!'
+    standard: {
+      caught:  'Ihr habt den Spion! <b>{spy} trinkt 5 Schlucke.</b>',
+      escaped: 'Der Spion ist entkommen! <b>Alle außer {spy} trinken 3 Schlucke.</b>'
+    },
+    mittel: {
+      caught:  'Ihr habt den Spion! <b>{spy} trinkt 7 Schlucke.</b>',
+      escaped: 'Der Spion ist entkommen! <b>Alle außer {spy} trinken 5 Schlucke.</b>'
+    },
+    extrem: {
+      caught:  'Ihr habt den Spion! <b>{spy} ext sein Glas.</b>',
+      escaped: 'Der Spion ist entkommen! <b>Alle außer {spy} exen ihr Glas.</b>'
+    },
+    intim: {
+      caught:  'Ihr habt den Spion! <b>{spy} trinkt 5 Schlucke</b> und beantwortet eine intime Frage.',
+      escaped: 'Der Spion ist entkommen! <b>Alle außer {spy} trinken 3 Schlucke</b> — und {spy} stellt einem Opfer eine intime Frage.'
+    }
   };
 
   /* ================= STATE ================= */
   var state = {
     players: 5,
+    names: [],
     category: 'standard',
     impostorIndex: 0,
     civilianWord: '',
@@ -788,7 +958,10 @@
     wordVisible: false,
     hideTimeout: null,
     timerInterval: null,
-    timeLeft: 90
+    timeLeft: 90,
+    votes: [],
+    voterIndex: 0,
+    voteOpen: false
   };
 
   var MIN_PLAYERS = 3;
@@ -874,6 +1047,11 @@
   function $(id) { return document.getElementById(id); }
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
   function randInt(n) { return Math.floor(Math.random() * n); }
+  function esc(s) {
+    return s.replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
 
   function showScreen(id) {
     var screens = document.querySelectorAll('.screen');
@@ -900,9 +1078,69 @@
   for (var c = 0; c < catButtons.length; c++) {
     catButtons[c].addEventListener('click', function () {
       tap();
-      startGame(this.getAttribute('data-cat'));
+      openNames(this.getAttribute('data-cat'));
     });
   }
+
+  /* ================= PHASE 1b: NAMES ================= */
+  function openNames(category) {
+    state.category = category;
+    $('namesCat').textContent = CATEGORY_LABEL[category];
+
+    var list = $('nameList');
+    list.innerHTML = '';
+    for (var i = 0; i < state.players; i++) {
+      var row = document.createElement('div');
+      row.className = 'name-row';
+
+      var idx = document.createElement('span');
+      idx.className = 'idx';
+      idx.textContent = pad(i + 1);
+
+      var input = document.createElement('input');
+      input.type = 'text';
+      input.maxLength = 14;
+      input.autocomplete = 'off';
+      input.placeholder = 'Spieler ' + (i + 1);
+      input.value = state.names[i] || '';
+      input.enterKeyHint = i === state.players - 1 ? 'done' : 'next';
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          var inputs = list.querySelectorAll('input');
+          var pos = Array.prototype.indexOf.call(inputs, this);
+          if (pos < inputs.length - 1) inputs[pos + 1].focus();
+          else this.blur();
+        }
+      });
+
+      row.appendChild(idx);
+      row.appendChild(input);
+      list.appendChild(row);
+    }
+
+    showScreen('screen-names');
+  }
+
+  $('btnBackToMenu').addEventListener('click', function () {
+    tap();
+    saveNames();
+    showScreen('screen-menu');
+  });
+
+  function saveNames() {
+    var inputs = $('nameList').querySelectorAll('input');
+    state.names = [];
+    for (var i = 0; i < inputs.length; i++) {
+      var v = inputs[i].value.trim();
+      state.names.push(v || 'Spieler ' + (i + 1));
+    }
+  }
+
+  $('btnStartReveal').addEventListener('click', function () {
+    tap();
+    saveNames();
+    startGame();
+  });
 
   $('btnRules').addEventListener('click', function () {
     tap();
@@ -917,9 +1155,8 @@
   });
 
   /* ================= PHASE 2: REVEAL ================= */
-  function startGame(category) {
-    state.category = category;
-    var pool = WORDS[category];
+  function startGame() {
+    var pool = WORDS[state.category];
     var pair = pool[randInt(pool.length)];
 
     if (Math.random() < 0.5) {
@@ -957,9 +1194,9 @@
     $('screen-reveal').classList.remove('exposed');
     $('revealCat').textContent = CATEGORY_LABEL[state.category];
     if (state.currentPlayer === 0) {
-      $('revealTitle').textContent = 'Spieler ' + pad(1);
+      $('revealTitle').textContent = state.names[0];
     } else {
-      $('revealTitle').textContent = 'Weitergeben an Spieler ' + pad(state.currentPlayer + 1);
+      $('revealTitle').textContent = 'Weitergeben an ' + state.names[state.currentPlayer];
     }
     $('revealHint').textContent = 'Tippen zum Einsehen';
     updateDots();
@@ -1033,13 +1270,117 @@
     }, 1000);
   }
 
-  $('btnToVerdict').addEventListener('click', function () {
+  $('btnToVote').addEventListener('click', function () {
     tap();
     clearInterval(state.timerInterval);
-    showScreen('screen-verdict');
+    startVoting();
   });
 
-  /* ================= PHASE 4: TRUTH ================= */
+  /* ================= PHASE 4a: SECRET VOTE ================= */
+  function startVoting() {
+    state.votes = [];
+    for (var i = 0; i < state.players; i++) state.votes.push(0);
+    state.voterIndex = 0;
+    state.voteOpen = false;
+
+    var el = $('voteDots');
+    el.innerHTML = '';
+    for (var j = 0; j < state.players; j++) el.appendChild(document.createElement('i'));
+
+    renderVoteCover();
+    showScreen('screen-vote');
+  }
+
+  function updateVoteDots() {
+    var dots = $('voteDots').children;
+    for (var i = 0; i < dots.length; i++) {
+      dots[i].classList.toggle('done', i < state.voterIndex);
+      dots[i].classList.toggle('now', i === state.voterIndex);
+    }
+  }
+
+  function renderVoteCover() {
+    state.voteOpen = false;
+    $('voteBox').style.display = 'none';
+    $('voteCover').style.display = '';
+    $('voteCoverTitle').textContent = state.voterIndex === 0
+      ? state.names[0]
+      : 'Weitergeben an ' + state.names[state.voterIndex];
+    updateVoteDots();
+  }
+
+  function renderVoteList() {
+    state.voteOpen = true;
+    $('voteCover').style.display = 'none';
+    $('voteBox').style.display = '';
+    $('voteWho').textContent = state.names[state.voterIndex];
+
+    var list = $('voteList');
+    list.innerHTML = '';
+    for (var i = 0; i < state.players; i++) {
+      if (i === state.voterIndex) continue; // sich selbst wählen gilt nicht
+      var btn = document.createElement('button');
+      btn.className = 'vote-item';
+      btn.setAttribute('data-target', i);
+      btn.innerHTML = '<span class="idx">' + pad(i + 1) + '</span>'
+        + '<span class="name">' + esc(state.names[i]) + '</span>'
+        + '<span class="arrow">&rarr;</span>';
+      btn.addEventListener('click', function () {
+        castVote(parseInt(this.getAttribute('data-target'), 10));
+      });
+      list.appendChild(btn);
+    }
+  }
+
+  $('voteCover').addEventListener('click', function () {
+    tap();
+    renderVoteList();
+  });
+
+  function castVote(target) {
+    tap();
+    state.votes[target]++;
+    state.voterIndex++;
+    if (state.voterIndex >= state.players) {
+      showScreen('screen-verdict');
+    } else {
+      renderVoteCover();
+    }
+  }
+
+  /* ================= PHASE 4c: TRUTH ================= */
+  function buildTally() {
+    var order = [];
+    for (var i = 0; i < state.players; i++) order.push(i);
+    order.sort(function (a, b) {
+      return (state.votes[b] - state.votes[a]) || (a - b);
+    });
+
+    var maxVotes = state.votes[order[0]] || 1;
+    var el = $('tally');
+    el.innerHTML = '';
+
+    for (var k = 0; k < order.length; k++) {
+      var idx = order[k];
+      var row = document.createElement('div');
+      row.className = 'tally-row' + (idx === state.impostorIndex ? ' spy' : '');
+      row.innerHTML = '<span class="name">' + esc(state.names[idx]) + '</span>'
+        + '<span class="tally-bar"><i data-w="' + Math.round(state.votes[idx] / maxVotes * 100) + '"></i></span>'
+        + '<span class="n">' + state.votes[idx] + '</span>';
+      el.appendChild(row);
+    }
+
+    // Balken erst nach dem Einblenden wachsen lassen
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        var bars = el.querySelectorAll('.tally-bar i');
+        for (var b = 0; b < bars.length; b++) {
+          bars[b].style.width = bars[b].getAttribute('data-w') + '%';
+        }
+      });
+    });
+  }
+
   $('btnRevealTruth').addEventListener('click', function () {
     bassDrop();
     vibrate([100, 50, 100, 50, 400]);
@@ -1049,10 +1390,27 @@
     void flash.offsetWidth;
     flash.classList.add('go');
 
-    $('impostorName').textContent = 'Spieler ' + pad(state.impostorIndex + 1);
+    // Erwischt nur, wenn der Spion ALLEIN die meisten Stimmen hat
+    var spyVotes = state.votes[state.impostorIndex];
+    var maxOther = 0;
+    for (var i = 0; i < state.players; i++) {
+      if (i !== state.impostorIndex && state.votes[i] > maxOther) maxOther = state.votes[i];
+    }
+    var caught = spyVotes > maxOther;
+
+    var spyName = state.names[state.impostorIndex];
+    $('impostorName').textContent = spyName;
+
+    var badge = $('outcomeBadge');
+    badge.className = 'badge ' + (caught ? 'caught' : 'escaped');
+    badge.textContent = caught ? 'Erwischt' : 'Entkommen';
+
+    buildTally();
+
     $('civilianWord').textContent = state.civilianWord;
     $('impostorWord').textContent = state.impostorWord;
-    $('penaltyText').innerHTML = PENALTIES[state.category];
+    $('penaltyText').innerHTML = PENALTIES[state.category][caught ? 'caught' : 'escaped']
+      .split('{spy}').join(esc(spyName));
 
     var nameEl = $('impostorName');
     nameEl.style.animation = 'none';
